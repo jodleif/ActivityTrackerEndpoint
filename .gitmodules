@@ -1,3 +1,6 @@
 [submodule "activitiytracker/qhttp"]
 	path = activitiytracker/qhttp
 	url = https://github.com/azadkuh/qhttp.git
+[submodule "activitiytracker/strhashliteral"]
+	path = activitiytracker/strhashliteral
+	url = git@github.com:jodleif/strhashliteral.git

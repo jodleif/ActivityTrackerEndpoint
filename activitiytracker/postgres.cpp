@@ -8,8 +8,8 @@ db::make_transaction(pqxx::connection* ptr, std::string sql_query)
 {
   assert(ptr);
   assert(sql_query.size() > 0);
-  pqxx::work transaction(*ptr);
-  try {
+  auto qres = db::db_try_block([ptr,&sql_query](){
+    pqxx::work transaction(*ptr);
     auto r = transaction.exec(sql_query);
     std::cout << "Got " << r.size() << " results\n";
     for (const auto& row : r) {
@@ -18,11 +18,9 @@ db::make_transaction(pqxx::connection* ptr, std::string sql_query)
       }
       std::cout << '\n';
     }
-    return true;
-  } catch (std::exception& e) {
-    std::cerr << "Failed processing: " << sql_query << '\n'
-              << e.what() << std::endl;
-  }
+    return r;
+  }, "Error during SQL query");
+  if (qres) return true;
   return false;
 }
 
