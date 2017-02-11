@@ -1,0 +1,3 @@
+[submodule "activitiytracker/qhttp"]
+	path = activitiytracker/qhttp
+	url = https://github.com/azadkuh/qhttp.git
