@@ -4,10 +4,9 @@
 namespace event {
 struct activity_event
 {
-    int64_t timestamp;
-    int32_t activity;
+  int64_t timestamp;
+  int32_t activity;
 };
-
 }
 
 #endif // ACTIVITY_EVENT_H

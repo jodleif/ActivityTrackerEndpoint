@@ -1,8 +1,8 @@
 #pragma once
-//forward decl
+// forward decl
 #include <string>
 class QByteArray;
 //
 namespace rest {
-QByteArray process_request(std::string url);
+QByteArray process_request(std::string url, const QByteArray& request_body);
 }

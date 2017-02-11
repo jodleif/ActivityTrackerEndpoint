@@ -8,19 +8,22 @@ db::make_transaction(pqxx::connection* ptr, std::string sql_query)
 {
   assert(ptr);
   assert(sql_query.size() > 0);
-  auto qres = db::db_try_block([ptr,&sql_query](){
-    pqxx::work transaction(*ptr);
-    auto r = transaction.exec(sql_query);
-    std::cout << "Got " << r.size() << " results\n";
-    for (const auto& row : r) {
-      for (const auto field : row) {
-        std::cout << field.name() << ":" << field.c_str() << "\t";
+  auto qres = db::db_try_block(
+    [ptr, &sql_query]() {
+      pqxx::work transaction(*ptr);
+      auto r = transaction.exec(sql_query);
+      std::cout << "Got " << r.size() << " results\n";
+      for (const auto& row : r) {
+        for (const auto field : row) {
+          std::cout << field.name() << ":" << field.c_str() << "\t";
+        }
+        std::cout << '\n';
       }
-      std::cout << '\n';
-    }
-    return r;
-  }, "Error during SQL query");
-  if (qres) return true;
+      return r;
+    },
+    "Error during SQL query");
+  if (qres)
+    return true;
   return false;
 }
 
@@ -50,5 +53,3 @@ db::open_db_connection()
   return std::unique_ptr<pqxx::connection,
                          std::function<void(pqxx::connection*)>>(nullptr);
 }
-
-
