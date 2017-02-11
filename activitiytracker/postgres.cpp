@@ -1,8 +1,9 @@
 #include "postgres.h"
 #include <cassert>
+#include <functional>
 #include <iostream>
 
-void
+bool
 db::make_transaction(pqxx::connection* ptr, std::string sql_query)
 {
   assert(ptr);
@@ -10,8 +11,6 @@ db::make_transaction(pqxx::connection* ptr, std::string sql_query)
   pqxx::work transaction(*ptr);
   try {
     auto r = transaction.exec(sql_query);
-    if (r.size() == 0)
-      return;
     std::cout << "Got " << r.size() << " results\n";
     for (const auto& row : r) {
       for (const auto& field : row) {
@@ -19,10 +18,12 @@ db::make_transaction(pqxx::connection* ptr, std::string sql_query)
       }
       std::cout << '\n';
     }
+    return true;
   } catch (std::exception& e) {
     std::cerr << "Failed processing: " << sql_query << '\n'
               << e.what() << std::endl;
   }
+  return false;
 }
 
 /**
@@ -35,13 +36,18 @@ db::make_transaction(pqxx::connection* ptr, std::string sql_query)
  *  PGPASSWORD  (your PostgreSQL password, if needed)
  * @return unique_ptr with db-handle
  */
-std::unique_ptr<pqxx::connection>
+std::unique_ptr<pqxx::connection, std::function<void(pqxx::connection*)>>
 db::open_db_connection()
 {
   try {
-    return std::unique_ptr<pqxx::connection>(new pqxx::connection());
+    return std::unique_ptr<pqxx::connection,
+                           std::function<void(pqxx::connection*)>>(
+      new pqxx::connection(), [&](pqxx::connection* ptr) {
+        ptr->disconnect();
+        delete ptr;
+      });
   } catch (std::exception& e) {
     std::cerr << "Failed connecting to DB\n" << e.what() << std::endl;
   }
-  return std::unique_ptr<pqxx::connection>(nullptr);
+  return std::unique_ptr<pqxx::connection, std::function<void(pqxx::connection*)>>(nullptr);
 }

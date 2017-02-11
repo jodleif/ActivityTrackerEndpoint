@@ -15,12 +15,12 @@ printstuff(const QByteArray& arr)
 
 int
 main(int argc, char* argv[])
-{
+{{
   auto ptr = db::open_db_connection();
   {
     db::make_transaction(ptr.get(), "select * from activity");
     db::make_transaction(ptr.get(), "select * from users");
-  }
+  }}
   QCoreApplication app(argc, argv);
   qhttp::server::QHttpServer server(&app);
   server.listen(QHostAddress::Any, 8080, [](qhttp::server::QHttpRequest* req,
