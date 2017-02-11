@@ -2,9 +2,9 @@
 #include <cassert>
 #include <functional>
 #include <iostream>
-
+using conn_dtor_fn = std::function<void(pqxx::connection*)>;
 bool
-db::make_transaction(pqxx::connection* ptr, std::string sql_query)
+db::execute_query(pqxx::connection* ptr, std::string sql_query)
 {
   assert(ptr);
   assert(sql_query.size() > 0);
@@ -37,19 +37,17 @@ db::make_transaction(pqxx::connection* ptr, std::string sql_query)
  *  PGPASSWORD  (your PostgreSQL password, if needed)
  * @return unique_ptr with db-handle
  */
-std::unique_ptr<pqxx::connection, std::function<void(pqxx::connection*)>>
+std::unique_ptr<pqxx::connection, conn_dtor_fn>
 db::open_db_connection()
 {
   try {
-    return std::unique_ptr<pqxx::connection,
-                           std::function<void(pqxx::connection*)>>(
-      new pqxx::connection(), [&](pqxx::connection* ptr) {
-        ptr->disconnect();
-        delete ptr;
+    return std::unique_ptr<pqxx::connection, conn_dtor_fn>(
+      new pqxx::connection(), [&](pqxx::connection* connection) {
+        connection->disconnect();
+        delete connection;
       });
   } catch (std::exception& e) {
     std::cerr << "Failed connecting to DB\n" << e.what() << std::endl;
   }
-  return std::unique_ptr<pqxx::connection,
-                         std::function<void(pqxx::connection*)>>(nullptr);
+  return { nullptr };
 }

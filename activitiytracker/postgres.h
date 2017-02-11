@@ -1,14 +1,20 @@
-#ifndef POSTGRES_H
-#define POSTGRES_H
+#pragma once
 #include <experimental/optional>
 #include <iostream>
 #include <memory>
 #include <pqxx/pqxx>
-namespace db {
 
 template <class T>
 using optional = std::experimental::optional<T>;
 
+using unique_db_ptr =
+  std::unique_ptr<pqxx::connection, std::function<void(pqxx::connection*)>>;
+namespace db {
+
+/**
+ * @brief The db_result enum
+ * To signal results from db-related functions
+ */
 enum class db_result : int
 {
   OK,
@@ -17,25 +23,29 @@ enum class db_result : int
   WRONG_PASSWORD,
   FAILURE
 };
+
+/**
+ * Wrapper fn to run queries in.
+ * Prints errors to stderr
+ * @returns optional result.
+ */
 template <class T>
 optional<pqxx::result>
 db_try_block(T&& fn, std::string error_msg)
 {
   try {
-    return optional<pqxx::result>(fn());
+    return std::experimental::make_optional(fn());
   } catch (std::exception& e) {
     std::cerr << error_msg << e.what() << std::endl;
   }
-  return optional<pqxx::result>();
+  return {}; // empty optional
 }
 
-bool make_transaction(pqxx::connection* ptr, std::string sql_query);
+bool execute_query(pqxx::connection* ptr, std::string sql_query);
 db_result insert_user(pqxx::connection* ptr, std::string email,
                       std::string password);
 db_result delete_user(pqxx::connection* ptr, std::string email,
                       std::string password);
 bool prepare_connection(pqxx::connection* ptr);
-std::unique_ptr<pqxx::connection, std::function<void(pqxx::connection*)>>
-open_db_connection();
+unique_db_ptr open_db_connection();
 }
-#endif // POSTGRES_H
