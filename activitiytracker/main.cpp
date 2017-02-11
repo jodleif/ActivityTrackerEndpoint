@@ -73,21 +73,24 @@ main(int argc, char* argv[])
   }*/
   QCoreApplication app(argc, argv);
   qhttp::server::QHttpServer server(&app);
-  server.listen(QHostAddress::Any, config::HTTP_PORT, [](qhttp::server::QHttpRequest* req,
-                                            qhttp::server::QHttpResponse* res) {
-    req->collectData(config::MAX_DATA);
-    // Control flow
-    auto url = req->url().toString().toStdString();
+  server.listen(
+    QHostAddress::Any, config::HTTP_PORT,
+    [](qhttp::server::QHttpRequest* req, qhttp::server::QHttpResponse* res) {
+      req->collectData(config::MAX_DATA);
+      // Control flow
 
-    // Make response -- fill buffer
-    QByteArray result_buffer = rest::process_request(url);
-    req->onEnd([req, res, result_buffer]() {
-      res->setStatusCode(qhttp::ESTATUS_OK);
-      res->addHeader("connection", "close");
-      res->addHeaderValue("content-length", result_buffer.size());
-      res->end(result_buffer);
+      // Make response -- fill buffer
+      req->onEnd([req, res]() {
+        auto url = req->url().toString().toStdString();
+        const auto& request_body = req->collectedData();
+
+        QByteArray result_buffer = rest::process_request(url, request_body);
+        res->setStatusCode(qhttp::ESTATUS_OK);
+        res->addHeader("connection", "close");
+        res->addHeaderValue("content-length", result_buffer.size());
+        res->end(result_buffer);
+      });
     });
-  });
   if (!server.isListening()) {
     qDebug("failed to listen");
     return -1;
