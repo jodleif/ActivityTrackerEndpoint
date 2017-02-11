@@ -18,7 +18,16 @@ void db::make_transaction(pqxx::connection * ptr,std::string sql_query)
 
 }
 
-
+/**
+ * @brief db::open_db_connection
+ * Will open a new database-connection based on the following shell-variables
+ *  PGDATABASE  (name of database; defaults to your user name)
+ *  PGHOST      (database server; defaults to local machine)
+ *  PGPORT      (TCP port to connect to; default is 5432)
+ *  PGUSER      (your PostgreSQL user ID; defaults to your login name)
+ *  PGPASSWORD  (your PostgreSQL password, if needed)
+ * @return unique_ptr with db-handle
+ */
 std::unique_ptr<pqxx::connection> db::open_db_connection()
 {
     try {
