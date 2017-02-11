@@ -13,7 +13,7 @@ db::make_transaction(pqxx::connection* ptr, std::string sql_query)
     auto r = transaction.exec(sql_query);
     std::cout << "Got " << r.size() << " results\n";
     for (const auto& row : r) {
-      for (const auto& field : row) {
+      for (const auto field : row) {
         std::cout << field.name() << ":" << field.c_str() << "\t";
       }
       std::cout << '\n';
@@ -49,5 +49,8 @@ db::open_db_connection()
   } catch (std::exception& e) {
     std::cerr << "Failed connecting to DB\n" << e.what() << std::endl;
   }
-  return std::unique_ptr<pqxx::connection, std::function<void(pqxx::connection*)>>(nullptr);
+  return std::unique_ptr<pqxx::connection,
+                         std::function<void(pqxx::connection*)>>(nullptr);
 }
+
+
