@@ -5,6 +5,7 @@
 #include <iostream>
 
 using conn_dtor_fn = std::function<void(pqxx::connection*)>;
+using db_unq_ptr = std::unique_ptr<pqxx::connection, conn_dtor_fn>;
 bool
 db::execute_query(pqxx::connection* ptr, std::string sql_query)
 {
@@ -41,21 +42,24 @@ db::execute_query(pqxx::connection* ptr, std::string sql_query)
  * postgres_prepared_statments.cpp
  * @return unique_ptr with db-handle
  */
-std::unique_ptr<pqxx::connection, conn_dtor_fn>
+db_unq_ptr
 db::open_db_connection()
 {
-  auto db_ptr = []() -> std::unique_ptr<pqxx::connection, conn_dtor_fn> {
+  // initialize connection to database - if an exception get's thrown
+  // log to stderr and return a nullptr
+  auto db_ptr = []() -> db_unq_ptr {
     try {
-      return std::unique_ptr<pqxx::connection, conn_dtor_fn>(
-        new pqxx::connection(), [&](pqxx::connection* connection) {
-          connection->disconnect();
-          delete connection;
-        });
+      return db_unq_ptr(new pqxx::connection(),
+                        [&](pqxx::connection* connection) {
+                          connection->disconnect();
+                          delete connection;
+                        });
     } catch (std::exception& e) {
       std::cerr << "Failed connecting to DB\n" << e.what() << std::endl;
     }
     return { nullptr };
   }();
+  // if db_connection opened, also initialize prepared statements in connection
   if (db_ptr) {
     prepare_connection(db_ptr.get());
   }
