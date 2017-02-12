@@ -1,11 +1,9 @@
 #pragma once
+#include "activity_event.h"
 #include <experimental/optional>
 #include <iostream>
 #include <memory>
 #include <pqxx/pqxx>
-
-#include "activity_event.h"
-
 template <class T>
 using optional = std::experimental::optional<T>;
 
@@ -13,19 +11,8 @@ using unique_db_ptr =
   std::unique_ptr<pqxx::connection, std::function<void(pqxx::connection*)>>;
 
 namespace db {
-/**
- * @brief The db_result enum
- * To signal results from db-related functions
- */
-enum class db_result_code : int
-{
-  OK,
-  USER_EXISTS,
-  USER_DOES_NOT_EXIST,
-  WRONG_PASSWORD,
-  NO_DB_CONNECTION,
-  FAILURE
-};
+// defined in response.h
+enum class db_result_code;
 
 /**
  * Wrapper fn to run queries in.

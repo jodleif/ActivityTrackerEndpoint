@@ -1,5 +1,6 @@
 #include "db_helpers.h"
 #include "postgres.h"
+#include "responses.h"
 #include <cassert>
 #include <iostream>
 

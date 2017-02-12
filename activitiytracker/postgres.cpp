@@ -1,7 +1,9 @@
 #include "postgres.h"
+#include "responses.h"
 #include <cassert>
 #include <functional>
 #include <iostream>
+
 using conn_dtor_fn = std::function<void(pqxx::connection*)>;
 bool
 db::execute_query(pqxx::connection* ptr, std::string sql_query)
@@ -35,19 +37,27 @@ db::execute_query(pqxx::connection* ptr, std::string sql_query)
  *  PGPORT      (TCP port to connect to; default is 5432)
  *  PGUSER      (your PostgreSQL user ID; defaults to your login name)
  *  PGPASSWORD  (your PostgreSQL password, if needed)
+ * Will also initialize the connection with the prepared statements defined in
+ * postgres_prepared_statments.cpp
  * @return unique_ptr with db-handle
  */
 std::unique_ptr<pqxx::connection, conn_dtor_fn>
 db::open_db_connection()
 {
-  try {
-    return std::unique_ptr<pqxx::connection, conn_dtor_fn>(
-      new pqxx::connection(), [&](pqxx::connection* connection) {
-        connection->disconnect();
-        delete connection;
-      });
-  } catch (std::exception& e) {
-    std::cerr << "Failed connecting to DB\n" << e.what() << std::endl;
+  auto db_ptr = []() -> std::unique_ptr<pqxx::connection, conn_dtor_fn> {
+    try {
+      return std::unique_ptr<pqxx::connection, conn_dtor_fn>(
+        new pqxx::connection(), [&](pqxx::connection* connection) {
+          connection->disconnect();
+          delete connection;
+        });
+    } catch (std::exception& e) {
+      std::cerr << "Failed connecting to DB\n" << e.what() << std::endl;
+    }
+    return { nullptr };
+  }();
+  if (db_ptr) {
+    prepare_connection(db_ptr.get());
   }
-  return { nullptr };
+  return db_ptr;
 }
