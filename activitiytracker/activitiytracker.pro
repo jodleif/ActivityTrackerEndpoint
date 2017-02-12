@@ -14,7 +14,9 @@ SOURCES += main.cpp \
     postgres.cpp \
     postgres_prepared_statements.cpp \
     activity_event.cpp \
-    rest.cpp
+    rest.cpp \
+    db_helpers.cpp \
+    request_handling.cpp
 LIBS += -lqhttp -lpqxx -lpq
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which as been marked deprecated (the exact warnings
@@ -32,4 +34,7 @@ HEADERS += \
     activity_event.h \
     globals.h \
     rest.h \
-    rest_helpers.h
+    rest_helpers.h \
+    db_helpers.h \
+    request_handling.h \
+    responses.h

@@ -132,6 +132,7 @@ insert_events(pqxx::connection* db_conn, std::string email,
             .prepared("insert_event")(email)(event.activity)(event.timestamp)
             .exec();
         }
+        return pqxx::result(); // placeholder object to signal correct result
       },
       "Failed to insert events");
     if (res) {
