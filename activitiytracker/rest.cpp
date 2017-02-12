@@ -4,13 +4,21 @@
 #include <QDebug>
 #include <QJsonDocument>
 #include <cassert>
+#include <qjsonobject.h>
 
 using namespace hash::literals;
 namespace canned_response {
 constexpr char invalid_json[] = "Invalid JSON\n";
 constexpr char invalid_url[] = "Invalid URL\n";
+constexpr char invalid_request[] = "Invalid request\n Your request needs to "
+                                   "specify username , type of request and "
+                                   "password on string format(type,user,pw)\n";
 }
 namespace {
+static const std::array<const QString, 3ull> required_for_commit{ "type",
+                                                                  "user",
+                                                                  "pw" };
+
 QJsonDocument
 parse_json(const QByteArray& request_body, QJsonParseError* error)
 {
@@ -42,10 +50,36 @@ get_json(const QByteArray& request_body, QByteArray& out)
   return json;
 }
 
+bool
+verify_commit_request(QJsonDocument json)
+{
+  auto object = json.object();
+  auto keylist = object.keys();
+  auto nof_matches = std::accumulate(
+    required_for_commit.begin(), required_for_commit.end(), 0u,
+    [&keylist](unsigned int prev, const auto& to_match) -> int {
+      if (keylist.contains(to_match, Qt::CaseSensitivity::CaseInsensitive)) {
+        prev += 1;
+      }
+      return prev;
+    });
+  if (nof_matches == required_for_commit.size()) {
+    // verify that all are strings
+    for (const auto& str : required_for_commit) {
+      if (!(object.take(str).isString()))
+        return false;
+    }
+  } else
+    return false;
+  return true;
+}
+
 QByteArray
 commit_endpoint(QJsonDocument json)
 {
-
+  if (!verify_commit_request(json))
+    return QByteArray(canned_response::invalid_request);
+  // after basic verification we know that we have "user", "pw" and "type"
   return QByteArray();
 }
 

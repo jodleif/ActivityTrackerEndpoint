@@ -46,14 +46,14 @@ prepare_connection(pqxx::connection* ptr)
   return true;
 }
 
-db_result
+db_result_code
 insert_user(pqxx::connection* ptr, std::string email, std::string password)
 {
   assert(ptr);
   auto userid = does_user_exist(ptr, email);
   if (userid) {
     std::cerr << "User exists with id:" << userid << std::endl;
-    return db_result::USER_EXISTS;
+    return db_result_code::USER_EXISTS;
   }
 
   pqxx::work transaction(*ptr);
@@ -66,11 +66,11 @@ insert_user(pqxx::connection* ptr, std::string email, std::string password)
     "Failed inserting user\n");
 
   if (!res)
-    return db_result::FAILURE;
+    return db_result_code::FAILURE;
 
-  return db_result::OK;
+  return db_result_code::OK;
 }
-db_result
+db_result_code
 delete_user(pqxx::connection* ptr, std::string email, std::string password)
 {
   {
@@ -81,9 +81,9 @@ delete_user(pqxx::connection* ptr, std::string email, std::string password)
       },
       "Failed to query for matching password");
     if (!res)
-      return db_result::FAILURE;
+      return db_result_code::FAILURE;
     if ((*res).size() == 0)
-      return db_result::WRONG_PASSWORD;
+      return db_result_code::WRONG_PASSWORD;
   }
   pqxx::work transaction(*ptr);
   auto res = db_try_block(
@@ -95,7 +95,7 @@ delete_user(pqxx::connection* ptr, std::string email, std::string password)
     "Failed query to delete password");
 
   if (!res)
-    return db_result::FAILURE;
-  return db_result::OK;
+    return db_result_code::FAILURE;
+  return db_result_code::OK;
 }
 }

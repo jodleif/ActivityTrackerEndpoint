@@ -15,7 +15,7 @@ namespace db {
  * @brief The db_result enum
  * To signal results from db-related functions
  */
-enum class db_result : int
+enum class db_result_code : int
 {
   OK,
   USER_EXISTS,
@@ -42,10 +42,10 @@ db_try_block(T&& fn, std::string error_msg)
 }
 
 bool execute_query(pqxx::connection* ptr, std::string sql_query);
-db_result insert_user(pqxx::connection* ptr, std::string email,
-                      std::string password);
-db_result delete_user(pqxx::connection* ptr, std::string email,
-                      std::string password);
+db_result_code insert_user(pqxx::connection* ptr, std::string email,
+                           std::string password);
+db_result_code delete_user(pqxx::connection* ptr, std::string email,
+                           std::string password);
 bool prepare_connection(pqxx::connection* ptr);
 unique_db_ptr open_db_connection();
 }
