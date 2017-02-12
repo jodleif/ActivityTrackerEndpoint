@@ -1,3 +1,4 @@
+#include "db_helpers.h"
 #include "postgres.h"
 #include <cassert>
 #include <iostream>
@@ -74,16 +75,9 @@ db_result_code
 delete_user(pqxx::connection* ptr, std::string email, std::string password)
 {
   {
-    pqxx::work transaction(*ptr);
-    auto res = db_try_block(
-      [email, password, &transaction]() {
-        return transaction.prepared("check_password")(email)(password).exec();
-      },
-      "Failed to query for matching password");
-    if (!res)
-      return db_result_code::FAILURE;
-    if ((*res).size() == 0)
-      return db_result_code::WRONG_PASSWORD;
+    auto pw_check = check_login(ptr, email, password);
+    if (pw_check != db_result_code::OK)
+      return pw_check;
   }
   pqxx::work transaction(*ptr);
   auto res = db_try_block(
@@ -97,5 +91,55 @@ delete_user(pqxx::connection* ptr, std::string email, std::string password)
   if (!res)
     return db_result_code::FAILURE;
   return db_result_code::OK;
+}
+
+db_result_code
+check_login(pqxx::connection* ptr, std::string email, std::string password)
+{
+  if (!db::verify_connection(ptr))
+    return db_result_code::NO_DB_CONNECTION;
+  pqxx::work transaction(*ptr);
+  auto res = db::db_try_block(
+    [email, password, &transaction]() {
+      return transaction.prepared("check_password")(email)(password).exec();
+    },
+    "DB fail when check_login");
+  if (!res)
+    return db_result_code::FAILURE;
+  if ((*res).size() >= 1)
+    return db_result_code::OK;
+  return db_result_code::WRONG_PASSWORD;
+}
+/**
+ * @brief insert_events
+ * Assumes email is valid
+ * @param db_conn connection to database
+ * @param email users email (verified)
+ * @return operation succesful?
+ */
+db_result_code
+insert_events(pqxx::connection* db_conn, std::string email,
+              std::vector<event::activity_event> events)
+{
+  if (!db::verify_connection(db_conn))
+    return db_result_code::NO_DB_CONNECTION;
+  {
+    pqxx::work transaction(*db_conn);
+    auto res = db_try_block(
+      [email, &events, &transaction]() {
+        for (const auto& event : events) {
+          transaction
+            .prepared("insert_event")(email)(event.activity)(event.timestamp)
+            .exec();
+        }
+      },
+      "Failed to insert events");
+    if (res) {
+      transaction.commit();
+      return db_result_code::OK;
+    }
+  }
+
+  return db_result_code::FAILURE;
 }
 }
