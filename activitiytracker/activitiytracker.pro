@@ -31,4 +31,5 @@ HEADERS += \
     postgres.h \
     activity_event.h \
     globals.h \
-    rest.h
+    rest.h \
+    rest_helpers.h
