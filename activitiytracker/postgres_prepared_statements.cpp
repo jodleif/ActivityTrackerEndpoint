@@ -7,7 +7,8 @@
 namespace db {
 namespace sql_statements {
 constexpr char insert_event[] =
-  "INSERT INTO user_events VALUES (default,$1,$2,$3)";
+  "INSERT INTO user_events (userid,activity_id,event_time)"
+  "SELECT users.userid,$2,to_timestamp($3) FROM users WHERE users.email=$1";
 constexpr char check_password[] =
   "SELECT * FROM users WHERE email=$1 AND password=$2";
 constexpr char insert_user[] =
@@ -133,11 +134,12 @@ insert_events(pqxx::connection* db_conn, std::string email,
             .prepared("insert_event")(email)(event.activity)(event.timestamp)
             .exec();
         }
+        // If no exception has been thrown - commit transaction
+        transaction.commit();
         return pqxx::result(); // placeholder object to signal correct result
       },
       "Failed to insert events");
     if (res) {
-      transaction.commit();
       return db_result_code::OK;
     }
   }

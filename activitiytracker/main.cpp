@@ -27,7 +27,7 @@ main(int argc, char* argv[])
   QCoreApplication app(argc, argv);
   qhttp::server::QHttpServer server(&app);
   server.listen(
-    QHostAddress::Any, config::HTTP_PORT,
+    QHostAddress::LocalHost, config::HTTP_PORT,
     [](qhttp::server::QHttpRequest* req, qhttp::server::QHttpResponse* res) {
       req->collectData(config::MAX_DATA);
 
