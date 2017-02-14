@@ -1,11 +1,11 @@
 #pragma once
 #include <QDebug>
+#include <QJsonArray>
 #include <QJsonObject>
 #include <QStringList>
 #include <algorithm>
 #include <array>
 #include <cstdint>
-
 namespace rest {
 template <class T, std::size_t t>
 uint32_t
@@ -22,29 +22,6 @@ nof_matching_keywords(QStringList& keys, const std::array<T, t>& to_match)
       }
       return prev;
     });
-}
-
-template <typename T>
-bool
-pred_is(QJsonObject, const QString)
-{
-  // should not be instansiated. TODO: static_assert
-  qDebug() << "Invalid template spec called\n";
-  std::terminate();
-}
-
-template <>
-bool
-pred_is<double>(QJsonObject json, const QString str)
-{
-  return (json.take(str)).isDouble();
-}
-
-template <>
-bool
-pred_is<QString>(QJsonObject json, const QString str)
-{
-  return (json.take(str)).isString();
 }
 
 template <typename F, std::size_t t>
@@ -64,13 +41,30 @@ bool
 specified_kws_are_numbers(QJsonObject json,
                           const std::array<const QString, t>& keywords)
 {
-  return specified_kws_are(json, keywords, pred_is<double>);
+  return specified_kws_are(json, keywords,
+                           [](QJsonObject json, const QString& str) {
+                             return (json.take(str)).isDouble();
+                           });
 }
 template <std::size_t t>
 bool
 specified_kws_are_strings(QJsonObject json,
                           const std::array<const QString, t>& keywords)
 {
-  return specified_kws_are(json, keywords, pred_is<QString>);
+  return specified_kws_are(json, keywords,
+                           [](QJsonObject json, const QString& str) {
+
+                             return (json.take(str)).isString();
+                           });
+}
+template <std::size_t t>
+bool
+specified_kws_are_arrays(QJsonObject json,
+                         const std::array<const QString, t>& keywords)
+{
+  return specified_kws_are(json, keywords,
+                           [](QJsonObject json, const QString& str) {
+                             return (json.take(str)).isArray();
+                           });
 }
 }
