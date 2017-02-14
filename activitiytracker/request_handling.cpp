@@ -26,13 +26,24 @@ const static std::array<const QString, 2> required_for_event{
 const static std::array<const QString, 1> must_be_arrays{ { "events" } };
 const static std::array<const QString, 1> must_be_strings{ { QString("ts") } };
 const static std::array<const QString, 1> must_be_doubles{ { QString("act") } };
+
+/**
+ * @brief fetch_and_verify_user_and_email
+ * Fetches and verifies the JSON-fields that should contain
+ * username and password. Does not check the database for
+ * the matching fields.
+ * @param json
+ * @return
+ */
 user_and_email
 fetch_and_verify_user_and_email(QJsonObject json)
 {
   auto pw = json.value("pw").toString("");
   auto user = json.value("user").toString("");
-  if (pw.size() == 0 || user.size() == 0)
+  if (pw.size() == 0 || user.size() == 0) {
+    // If the either of the fields are empty the request is invalid
     return {};
+  }
   std::string username{ user.toStdString() };
   std::string password{ pw.toStdString() };
   return std::experimental::make_optional(std::make_pair(username, password));
@@ -71,7 +82,6 @@ parse_event(const QJsonObject& json_object)
   ev.timestamp = static_cast<int64_t>(timestamp.toLongLong(&string_parse, 10));
   if (string_parse) // parse to long longok?
   {
-    qDebug() << "ACtivity" << ev.activity << " Timestamp" << ev.timestamp;
     return std::experimental::make_optional(ev);
   }
   return {};
@@ -86,7 +96,6 @@ parse_events(const QJsonObject& json_object)
   ev.emplace(std::vector<event::activity_event>());
   auto& vector_ref = (*ev);
   QJsonArray json_array = json_object.value("events").toArray();
-  qDebug() << "Json_array length" << json_array.size();
   for (const QJsonValueRef event : json_array) {
     if (event.isObject()) {
       auto return_val = parse_event(event.toObject());
@@ -117,20 +126,18 @@ insert_events(pqxx::connection* db_connection, std::string username,
 QByteArray
 rest::commit_endpoint(QJsonDocument json)
 {
-
-  static int i{ 1 };
-  qDebug() << "Commit endpoint call: " << i++;
-
   // TODO: Proper connection management
   auto db_connection = db::open_db_connection();
-  // after basic verification we know that we have "user", "pw" and "type"
   auto json_object = json.object();
+
   auto username_and_password = fetch_and_verify_user_and_email(json_object);
   if (!username_and_password)
-    return QByteArray(response(db::db_result_code::WRONG_PASSWORD));
+    return QByteArray(response(response::INVALID_JSON));
+
   auto username = (*username_and_password).first;
   auto password = (*username_and_password).second;
 
+  // after basic verification we know that we have "user", "pw" and "type"
   auto req_type = rest::parse_request_type(json_object.take("type").toInt(-1));
   qDebug() << "Passed type verification";
   switch (req_type) {
