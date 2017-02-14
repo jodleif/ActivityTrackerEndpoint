@@ -20,9 +20,11 @@ using events = std::experimental::optional<std::vector<event::activity_event>>;
 using opt_event = std::experimental::optional<event::activity_event>;
 
 namespace {
+// Required fields JSON fields for an event
 const static std::array<const QString, 2> required_for_event{
   { QString("act"), QString("ts") }
 };
+// Type verification lookup
 const static std::array<const QString, 1> must_be_arrays{ { "events" } };
 const static std::array<const QString, 1> must_be_strings{ { QString("ts") } };
 const static std::array<const QString, 1> must_be_doubles{ { QString("act") } };
@@ -56,7 +58,12 @@ create_user(pqxx::connection* db_connection, std::string username,
   auto db_res = db::insert_user(db_connection, username, password);
   return QByteArray(rest::response(db_res));
 }
-
+/**
+ * @brief verify_event
+ * Type checking of the event in a JSON object
+ * @param json_object
+ * @return
+ */
 bool
 verify_event(const QJsonObject& json_object)
 {
