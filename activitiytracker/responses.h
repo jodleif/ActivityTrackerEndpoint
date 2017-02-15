@@ -34,7 +34,7 @@ constexpr static char const* invalid_request =
   "password on string format(type,user,pw)\n";
 constexpr static char const* invalid_request_type = "Invalid request type\n";
 }
-enum class response
+enum class response_t
 {
   INVALID_JSON,
   INVALID_URL,
@@ -43,22 +43,22 @@ enum class response
 };
 
 constexpr char const*
-resp(response resp)
+response_string(response_t resp)
 {
   switch (resp) {
-    case response::INVALID_JSON:
+    case response_t::INVALID_JSON:
       return canned_response::invalid_json;
-    case response::INVALID_REQUEST:
+    case response_t::INVALID_REQUEST:
       return canned_response::invalid_request;
-    case response::INVALID_REQUEST_TYPE:
+    case response_t::INVALID_REQUEST_TYPE:
       return canned_response::invalid_request_type;
-    case response::INVALID_URL:
+    case response_t::INVALID_URL:
       return canned_response::invalid_url;
   }
   return "";
 }
 constexpr char const*
-resp(db::db_result_code code)
+response_string(db::db_result_code code)
 {
   using r = db::db_result_code;
   switch (code) {

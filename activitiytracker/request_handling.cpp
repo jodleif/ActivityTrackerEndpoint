@@ -56,7 +56,7 @@ create_user(pqxx::connection* db_connection, std::string username,
             std::string password)
 {
   auto db_res = db::insert_user(db_connection, username, password);
-  return QByteArray(rest::response(db_res));
+  return QByteArray(rest::response_string(db_res));
 }
 /**
  * @brief verify_event
@@ -122,11 +122,11 @@ insert_events(pqxx::connection* db_connection, std::string username,
   // to insert events you need a valid login
   auto is_valid_login = db::check_login(db_connection, username, password);
   if (is_valid_login != db::db_result_code::OK)
-    return QByteArray(rest::response(is_valid_login));
+    return QByteArray(rest::response_string(is_valid_login));
 
   auto unboxed_events = *event; // extract from optional
   auto result = db::insert_events(db_connection, username, unboxed_events);
-  return QByteArray(rest::response(result));
+  return QByteArray(rest::response_string(result));
 }
 }
 
@@ -139,7 +139,7 @@ rest::commit_endpoint(QJsonDocument json)
 
   auto username_and_password = fetch_and_verify_user_and_email(json_object);
   if (!username_and_password)
-    return QByteArray(response(response::INVALID_JSON));
+    return QByteArray(response_string(response_t::INVALID_JSON));
 
   auto username = (*username_and_password).first;
   auto password = (*username_and_password).second;
@@ -162,7 +162,7 @@ rest::commit_endpoint(QJsonDocument json)
       break;
     }
     case rest::request_type::INVALID:
-      return QByteArray(response(response::INVALID_REQUEST_TYPE));
+      return QByteArray(response_string(response_t::INVALID_REQUEST_TYPE));
   }
 
   return QByteArray();

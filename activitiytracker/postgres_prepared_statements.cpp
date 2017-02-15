@@ -126,9 +126,9 @@ insert_events(pqxx::connection* db_conn, std::string email,
   if (!db::verify_connection(db_conn))
     return db_result_code::NO_DB_CONNECTION;
   {
-    pqxx::work transaction(*db_conn);
     auto res = db_try_block(
-      [email, &events, &transaction]() {
+      [email, &events, db_conn]() {
+        pqxx::work transaction(*db_conn);
         for (const auto& event : events) {
           transaction
             .prepared("insert_event")(email)(event.activity)(event.timestamp)

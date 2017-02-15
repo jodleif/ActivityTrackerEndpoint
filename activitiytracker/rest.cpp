@@ -45,7 +45,7 @@ get_json(const QByteArray& request_body, QByteArray& out)
   QJsonParseError error;
   auto json = parse_json(request_body, &error);
   if (!(is_valid_json(error))) {
-    out = QByteArray(rest::response(rest::response::INVALID_JSON));
+    out = QByteArray(rest::response_string(rest::response_t::INVALID_JSON));
     out.append(error.errorString());
     out.append("\n");
   }
@@ -78,7 +78,8 @@ rest::process_request(std::string url, const QByteArray& request_body)
         return res_body;
 
       if (!verify_commit_request(json))
-        return QByteArray(rest::response(rest::response::INVALID_REQUEST));
+        return QByteArray(
+          rest::response_string(rest::response_t::INVALID_REQUEST));
       return rest::commit_endpoint(json);
     }
     case "/request"_f64: {
@@ -88,7 +89,8 @@ rest::process_request(std::string url, const QByteArray& request_body)
       return rest::request_endpoint(json);
     }
     default:
-      res_body = QByteArray(rest::response(rest::response::INVALID_URL));
+      res_body =
+        QByteArray(rest::response_string(rest::response_t::INVALID_URL));
       break;
   }
   return res_body;
