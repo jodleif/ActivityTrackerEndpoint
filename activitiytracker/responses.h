@@ -15,7 +15,7 @@ enum class db_result_code : int
 };
 namespace canned_response {
 // db_result_code
-constexpr static char const* db_ok = "Request completed OK!\n";
+constexpr static char const* db_ok = "DB_COMMIT_OK";
 constexpr static char const* db_failure = "Requst to DB failed!\n";
 constexpr static char const* no_db_connection = "No connection to Database!\n";
 constexpr static char const* user_does_not_exist = "User does not exist!\n";
@@ -43,7 +43,7 @@ enum class response
 };
 
 constexpr char const*
-response(response resp)
+resp(response resp)
 {
   switch (resp) {
     case response::INVALID_JSON:
@@ -58,7 +58,7 @@ response(response resp)
   return "";
 }
 constexpr char const*
-response(db::db_result_code code)
+resp(db::db_result_code code)
 {
   using r = db::db_result_code;
   switch (code) {
