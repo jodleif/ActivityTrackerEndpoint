@@ -31,7 +31,8 @@ db_try_block(T&& fn, std::string error_msg)
   return {}; // empty optional
 }
 
-bool execute_query(pqxx::connection* ptr, std::string sql_query);
+bool execute_query(pqxx::connection* ptr, std::string sql_query,
+                   std::vector<std::vector<std::string>>& query_result);
 db_result_code insert_user(pqxx::connection* ptr, std::string email,
                            std::string password);
 db_result_code delete_user(pqxx::connection* ptr, std::string email,
@@ -41,5 +42,6 @@ db_result_code check_login(pqxx::connection* ptr, std::string email,
                            std::string password);
 db_result_code insert_events(pqxx::connection* ptr, std::string email,
                              std::vector<event::activity_event>);
+optional<std::vector<std::vector<std::string>>> dump_db();
 unique_db_ptr open_db_connection();
 }

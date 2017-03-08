@@ -15,4 +15,5 @@ request_type parse_request_type(int rt);
 QByteArray commit_endpoint(QJsonDocument json);
 
 QByteArray request_endpoint(QJsonDocument json);
+QByteArray db_dump();
 }

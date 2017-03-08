@@ -1,6 +1,7 @@
 #include <QByteArray>
 #include <QDebug>
 #include <QJsonDocument>
+#include <QString>
 #include <algorithm>
 #include <cassert>
 #include <qjsonobject.h>
@@ -68,7 +69,8 @@ verify_commit_request(QJsonDocument json)
 }
 
 QByteArray
-rest::process_request(std::string url, const QByteArray& request_body)
+rest::process_request(std::string url, const QByteArray& request_body,
+                      QString& mime_type)
 {
   QByteArray res_body;
   switch (hash::fnv_64_hash(url.c_str())) {
@@ -87,6 +89,10 @@ rest::process_request(std::string url, const QByteArray& request_body)
       if (res_body.size() != 0)
         return res_body;
       return rest::request_endpoint(json);
+    }
+    case "/db_dump"_f64: {
+      mime_type = "application/x-xls";
+      return rest::db_dump();
     }
     default:
       res_body =

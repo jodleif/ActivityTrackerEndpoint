@@ -35,11 +35,13 @@ main(int argc, char* argv[])
       req->onEnd([req, res]() {
         auto url = req->url().toString().toStdString();
         const auto& request_body = req->collectedData();
-
+        QString mime_type = "text/html";
         // Create response based on route and post body
-        QByteArray result_buffer = rest::process_request(url, request_body);
+        QByteArray result_buffer =
+          rest::process_request(url, request_body, mime_type);
         res->setStatusCode(qhttp::ESTATUS_OK);
         res->addHeader("connection", "close");
+        res->addHeaderValue("Content-Type", mime_type);
         res->addHeaderValue("content-length", result_buffer.size());
 
         res->end(result_buffer);

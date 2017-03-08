@@ -3,24 +3,32 @@
 #include <cassert>
 #include <functional>
 #include <iostream>
-
+namespace {
+constexpr char dump_database[] =
+  "select event_time, activity.activity, users.email from activity, "
+  "user_events, users where activity.activity_id=user_events.activity_id AND "
+  "user_events.userid=users.userid";
+}
 using conn_dtor_fn = std::function<void(pqxx::connection*)>;
 using db_unq_ptr = std::unique_ptr<pqxx::connection, conn_dtor_fn>;
 bool
-db::execute_query(pqxx::connection* ptr, std::string sql_query)
+db::execute_query(pqxx::connection* ptr, std::string sql_query,
+                  std::vector<std::vector<std::string>>& data)
 {
   assert(ptr);
   assert(sql_query.size() > 0);
   auto qres = db::db_try_block(
-    [ptr, &sql_query]() {
+    [ptr, &sql_query, &data]() {
       pqxx::work transaction(*ptr);
       auto r = transaction.exec(sql_query);
-      std::cout << "Got " << r.size() << " results\n";
+      data.reserve(r.size());
       for (const auto& row : r) {
-        for (const auto field : row) {
-          std::cout << field.name() << ":" << field.c_str() << "\t";
+        std::vector<std::string> data_row;
+        data_row.reserve(row.size());
+        for (pqxx::field cell : row) {
+          data_row.emplace_back(cell.c_str());
         }
-        std::cout << '\n';
+        data.emplace_back(std::move(data_row));
       }
       return r;
     },
@@ -64,4 +72,18 @@ db::open_db_connection()
     prepare_connection(db_ptr.get());
   }
   return db_ptr;
+}
+
+optional<std::vector<std::vector<std::string>>>
+db::dump_db()
+{
+  auto db_res = db::open_db_connection();
+  std::vector<std::vector<std::string>> data;
+  data.emplace_back(std::vector<std::string>(
+    { { "Header 1" }, { "Header 2" }, { "Header 3" } }));
+  auto success =
+    db::execute_query(db_res.get(), std::string(dump_database), std::ref(data));
+  if (success)
+    return std::experimental::make_optional(data);
+  return {};
 }

@@ -4,3 +4,6 @@
 [submodule "activitiytracker/strhashliteral"]
 	path = activitiytracker/strhashliteral
 	url = git@github.com:jodleif/strhashliteral.git
+[submodule "activitiytracker/xlnt"]
+	path = activitiytracker/xlnt
+	url = git@github.com:tfussell/xlnt.git

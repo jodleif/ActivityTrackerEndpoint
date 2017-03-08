@@ -16,6 +16,7 @@ constexpr char insert_user[] =
 constexpr char delete_user[] = "DELETE FROM users WHERE email=$1";
 constexpr char show_activities[] = "SELECT * FROM activity";
 constexpr char find_user[] = "SELECT userid FROM users where email=$1";
+
 } // end namespace sql_statements
 namespace {
 

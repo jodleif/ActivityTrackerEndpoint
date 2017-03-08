@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "activity_event.h"
+#include "excel_export.h"
 #include "postgres.h"
 #include "request_handling.h"
 #include "responses.h"
@@ -166,6 +167,21 @@ rest::commit_endpoint(QJsonDocument json)
   }
 
   return QByteArray();
+}
+
+QByteArray
+rest::db_dump()
+{
+  auto db_result = db::dump_db();
+  QByteArray arr;
+  if (db_result) {
+    auto serialized_excel = excelexport::serialized_export(*db_result);
+    arr.resize(serialized_excel.size());
+    std::copy(serialized_excel.begin(), serialized_excel.end(), arr.begin());
+    qDebug() << "Arr size: " << arr.size();
+    return arr;
+  }
+  return QByteArray(response_string(response_t::INVALID_REQUEST));
 }
 
 QByteArray
